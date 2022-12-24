@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/tyop?serverTimezone=Asia/Seoul
+    username: root
+    password: 159624
+  servlet:
+    multipart:
+      max-request-size: 50MB
+      max-file-size: 20MB
+      location: c:\Temp\upload
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create  #향후 none으로 변경
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 100
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.springframework.web: debug
+jwt:
+  secret: VlwEyVBsYt9V7zq57TejMnVUyzblYcfPQye08f7MGVA9XkHa
