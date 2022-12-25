@@ -38,7 +38,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/",
                                 "/member/signup",
-                                "/member/login"
+                                "/member/login",
+                                "/member/prohibition"
                         ).permitAll()
                         .requestMatchers(
                                 "/admin/**"
