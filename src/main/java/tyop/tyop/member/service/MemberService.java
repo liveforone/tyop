@@ -137,11 +137,6 @@ public class MemberService {
     }
 
     @Transactional
-    public void minusBlockCount(String email) {
-        memberRepository.minusBlockCount(email);
-    }
-
-    @Transactional
     public void deleteUser(Long id) {
         memberRepository.deleteById(id);
     }

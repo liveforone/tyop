@@ -33,8 +33,4 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Modifying
     @Query("update Member m set m.blockCount = m.blockCount + 1 where m.email = :email")
     void plusBlockCount(@Param("email") String email);
-
-    @Modifying
-    @Query("update Member m set m.blockCount = m.blockCount - 1 where m.email = :email")
-    void minusBlockCount(@Param("email") String email);
 }

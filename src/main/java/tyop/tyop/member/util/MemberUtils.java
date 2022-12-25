@@ -12,19 +12,13 @@ import java.net.URI;
 
 public class MemberUtils {
 
-    /*
-     * 이메일 중복 검증
-     * 반환 값 : false(중복X), true(중복)
-     */
+    private static final int BLOCK_COUNT = 10;
+
     public static boolean isDuplicateEmail(Member member) {
 
         return !CommonUtils.isNull(member);
     }
 
-    /*
-     * 비밀번호 같지 않은지 검증
-     * 반환 값 : true(같지 않을때), false(같을때)
-     */
     public static boolean isNotMatchingPassword(String inputPassword, String originalPassword) {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
@@ -49,5 +43,9 @@ public class MemberUtils {
         httpHeaders.setLocation(URI.create(url));
 
         return httpHeaders;
+    }
+
+    public static boolean checkBlockCount(Member member) {
+        return member.getBlockCount() == BLOCK_COUNT;
     }
 }

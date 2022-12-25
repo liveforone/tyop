@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import tyop.tyop.filteringBot.FilteringBot;
 import tyop.tyop.jwt.TokenInfo;
 import tyop.tyop.member.dto.ChangeEmailRequest;
 import tyop.tyop.member.dto.ChangePasswordRequest;
@@ -67,7 +68,8 @@ public class MemberController {
 
     @PostMapping("/member/login")
     public ResponseEntity<?> login(@RequestBody MemberRequest memberRequest) {
-        Member member = memberService.getMemberEntity(memberRequest.getEmail());
+        String email = memberRequest.getEmail();
+        Member member = memberService.getMemberEntity(email);
 
         if (CommonUtils.isNull(member)) {
             log.info("잘못된 이메일.");
@@ -80,6 +82,12 @@ public class MemberController {
         )) {
             log.info("비밀번호가 일치하지 않음.");
             return ResponseEntity.ok("비밀번호가 다릅니다. 다시 시도하세요.");
+        }
+
+        if (MemberUtils.checkBlockCount(member)) {
+            memberService.blockMember(email);
+            log.info("이메일 : " + email + " 영구 정지");
+            return ResponseEntity.ok("회원님의 계정은 영구 정지되었습니다.");
         }
 
         TokenInfo tokenInfo = memberService.login(memberRequest);
@@ -101,14 +109,20 @@ public class MemberController {
             Principal principal,
             HttpServletRequest request
     ) {
+        String email = principal.getName();
         Member member = memberService.getMemberByNickname(nickname);
+
+        if (FilteringBot.ignoreBlankCheckBadWord(nickname)) {
+            memberService.plusBlockCount(email);
+            return ResponseEntity.ok("비속어가 포함된 닉네임입니다. \n올바른 단어를 사용하세요.");
+        }
 
         if (MemberUtils.isDuplicateNickname(member)) {
             log.info("닉네임 중복됨");
             return ResponseEntity.ok("중복되는 닉네임 입니다.\n 다시 입력하세요.");
         }
 
-        memberService.updateNickname(principal.getName(), nickname);
+        memberService.updateNickname(email, nickname);
         log.info("닉네임 변경 성공");
 
         String url = "/member/logout";
