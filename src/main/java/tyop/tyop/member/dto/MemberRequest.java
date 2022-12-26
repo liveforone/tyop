@@ -1,6 +1,5 @@
 package tyop.tyop.member.dto;
 
-import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import tyop.tyop.member.model.Role;
