@@ -31,6 +31,10 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     void updateNickname(@Param("email") String email, @Param("nickname") String nickname);
 
     @Modifying
+    @Query("update Member m set m.introduction = :introduction where m.email = :email")
+    void updateIntroduction(@Param("email") String email, @Param("introduction") String introduction);
+
+    @Modifying
     @Query("update Member m set m.blockCount = m.blockCount + 1 where m.email = :email")
     void plusBlockCount(@Param("email") String email);
 }

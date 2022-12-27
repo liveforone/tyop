@@ -132,6 +132,11 @@ public class MemberService {
     }
 
     @Transactional
+    public void updateIntroduction(String email, String introduction) {
+        memberRepository.updateIntroduction(email, introduction);
+    }
+
+    @Transactional
     public void plusBlockCount(String email) {
         memberRepository.plusBlockCount(email);
     }

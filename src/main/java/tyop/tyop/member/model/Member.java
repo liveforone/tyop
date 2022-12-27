@@ -36,14 +36,25 @@ public class Member implements UserDetails {
 
     private int blockCount;
 
+    private String introduction;
+
     @Builder
-    public Member(Long id, String email, String password, String nickname, Role auth, int blockCount) {
+    public Member(
+            Long id,
+            String email,
+            String password,
+            String nickname,
+            Role auth,
+            int blockCount,
+            String introduction
+    ) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.nickname = nickname;
         this.auth = auth;
         this.blockCount = blockCount;
+        this.introduction = introduction;
     }
 
     @Override

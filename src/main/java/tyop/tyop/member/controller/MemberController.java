@@ -126,7 +126,6 @@ public class MemberController {
         log.info("닉네임 변경 성공");
 
         String url = "/member/logout";
-
         return CommonUtils.makeResponseEntityForRedirect(url, request);
     }
 
@@ -161,7 +160,6 @@ public class MemberController {
         log.info("이메일 변경 성공");
 
         String url = "/member/logout";
-
         return CommonUtils.makeResponseEntityForRedirect(url, request);
     }
 
@@ -189,7 +187,19 @@ public class MemberController {
         log.info("비밀번호 변경 성공");
 
         String url = "/member/logout";
+        return CommonUtils.makeResponseEntityForRedirect(url, request);
+    }
 
+    @PostMapping("/member/change-introduction")
+    public ResponseEntity<?> changeIntroduction(
+            @RequestBody String introduction,
+            Principal principal,
+            HttpServletRequest request
+    ) {
+        memberService.updateIntroduction(principal.getName(), introduction);
+        log.info("한줄 소개 업데이트 성공");
+
+        String url = "/member/my-page";
         return CommonUtils.makeResponseEntityForRedirect(url, request);
     }
 

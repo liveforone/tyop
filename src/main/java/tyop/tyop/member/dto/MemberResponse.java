@@ -17,4 +17,5 @@ public class MemberResponse {
     private String nickname;
     private Role auth;
     private int blockCount;
+    private String introduction;
 }
