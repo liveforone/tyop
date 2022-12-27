@@ -22,10 +22,27 @@ public class BoardService {
 
     public Page<BoardResponse> getHotBoards(Pageable pageable) {
         LocalDate nowDate = LocalDate.now();
-        BoardState normalState = BoardState.NORMAL;
 
         return BoardMapper.entityToDtoPage(
-                boardRepository.findHotBoards(nowDate, normalState, pageable)
+                boardRepository.findHotBoards(nowDate, pageable)
+        );
+    }
+
+    public Page<BoardResponse> searchBoardsByTitle(String keyword, Pageable pageable) {
+        return BoardMapper.entityToDtoPage(
+                boardRepository.searchBoardsByTitle(keyword, pageable)
+        );
+    }
+
+    public Page<BoardResponse> searchBoardsByTag(String keyword, Pageable pageable) {
+        return BoardMapper.entityToDtoPage(
+                boardRepository.searchBoardsByTag(keyword, pageable)
+        );
+    }
+
+    public Page<BoardResponse> getBoardsByEmail(String email, Pageable pageable) {
+        return BoardMapper.entityToDtoPage(
+                boardRepository.findBoardsByEmail(email, pageable)
         );
     }
 
@@ -36,5 +53,10 @@ public class BoardService {
     @Transactional
     public void updateHit(Long boardId) {
         boardRepository.updateHit(boardId);
+    }
+
+    @Transactional
+    public void reportBoard(Long boardId) {
+        boardRepository.reportBoard(BoardState.BLOCK, boardId);
     }
 }
