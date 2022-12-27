@@ -21,7 +21,7 @@
 * 게시글은 태그를 작성할 수 있다.
 * 게시글 검색은 두 종류가 있는데,
 * 태그를 이용하여 검색하거나, 제목으로 검색할 수 있다.
-* 핫 게시판에는 하루동안 순위(좋아요순)가 높은 순서대로 나열된다.
+* 핫 게시판에는 하루동안 순위(조회수순)가 높은 순서대로 나열된다.
 * 사용자가 작성하는 게시글과 댓글, 대댓글은 필터링 봇을 통하여 욕설과 음담패설이 걸러진다.
 * 필터링 봇을 통해 분위기가 깔끔하고, 핫게시판 시스템을 통해서 화두인 글들을 쉽게 볼 수있도록 하는 것에 중심을 둔 커뮤니티라고 생각하면된다.
 * 작성자의 닉네임도 필터링 봇을 거친다.
@@ -34,7 +34,7 @@
 * 게시글에 사진은 최대 4장까지 첨부 가능하다.
 * 게시글은 북마크가 가능하다.
 * 게시글은 하나의 태그만 달 수 있다.
-* 게시글의 좋아요 순으로 핫게시판에 순위가 반영되나,
+* 게시글의 조회수 순으로 핫게시판에 순위가 반영되나,
 * 게시글은 하루가 지나면 핫게시판에서 사라진다.
 * 댓글은 무분별한 댓글을 막기위해 필터링봇을 통해서 필터링을 거친다.
 * 필터링에 통과된 댓글만 작성이 가능하며, 필터링에 걸릴경우 정지점수는 증가된다.
@@ -50,19 +50,41 @@
 ## Api 설계
 ### Member
 ```
-GET  / : 홈(토큰 불필요)
+GET       / : 홈(토큰 불필요)
 GET|POST  /member/signup : 회원가입(토큰 불필요)
 GET|POST  /member/login : 로그인(토큰 불필요)
-GET  /member/logout : 로그아웃, get으로 받아도 정상 작동(토큰 불필요)
-GET  /member/my-page : 마이페이지(토큰 필요)
-POST  /member/change-nickname : 닉네임 변경(토큰 필요), json형식 문자열 닉네임 필요
-POST  /member/change-email : 이메일 변경, ChangeEmailRequest 형식 필요
-POST  /member/change-password : 비밀번호 변경, ChangePasswordRequest 형식 필요
-POST  /member/withdraw : 회원탈퇴(토큰 필요), json형식 문자열 비밀번호 필요
-GET  /admin : 어드민 페이지(토큰 필요)
-GET  /member/prohibition : 403 페이지(토큰 불필요)
+GET       /member/logout : 로그아웃, get으로 받아도 정상 작동(토큰 불필요)
+GET       /member/my-page : 마이페이지(토큰 필요)
+POST      /member/change-nickname : 닉네임 변경(토큰 필요), text 형식 문자열 닉네임 필요
+POST      /member/change-email : 이메일 변경, ChangeEmailRequest 형식 필요
+POST      /member/change-password : 비밀번호 변경, ChangePasswordRequest 형식 필요
+POST      /member/change-introduction : 한줄소개 변경, text 형식 문자열 한줄소개 필요
+POST      /member/withdraw : 회원탈퇴(토큰 필요), text 형식 문자열 비밀번호 필요
+GET       /admin : 어드민 페이지(토큰 필요)
+GET       /member/prohibition : 403 페이지(토큰 불필요)
 ```
 ## Json 바디 설계
+### Member
+```
+[signup/login]
+{
+  "email": "yc1234@gmail.com",
+  "password": "1234"
+}
+{
+  "email": "admin@tyop.com",
+  "password": "8888"
+}
+
+[change nickname] - text
+new
+
+[change password]
+{
+  "oldPassword": "test_488788830154",
+  "newPassword": "test_56d3eedeb3b9"
+}
+```
 
 # 4. 데이터베이스 설계
 ## 제약 조건
@@ -147,7 +169,7 @@ libreria를 보면 알겠지만 하나의 파일은 수정이 가능하다 다�
 
 - 엔티티 네이밍
 member : 활동 점수, 신고 수마다 카운트, 이름, 한줄소개
-board : 게시글 임시저장 기능, (오늘의 순위로 뽑는것, 그룹핑 쿼리로 날짜 처리하고 좋아요 desc로 가져오면됨), 신고기능, 게시글 삭제시 파일도 같이 삭제해야한다.
+board : (오늘의 순위로 뽑는것, 그룹핑 쿼리로 날짜 처리하고 조회수 desc로 가져오면됨), 신고기능, 게시글 삭제시 파일도 같이 삭제해야한다.
 comment : 신고 기능, 필터링
 reply : 대댓글, 신고 기능, 필터링
 File : 4개로 제한
@@ -210,12 +232,7 @@ one to many를 안쓰려면 아래와 같은 방법을 사용해야한다.
 
 오늘의 순위 : 전체 글 where createdDate = nowDate orderby good desc (페이징은 orderBy를 빼도됨.)
 
-좋아요 중복도 생각할수있음. 중복을 막으려면 좋아요 테이블을 따로 파고 유저정보와 게시글 정보를 저장하여 중복 체크하면됨
-좋아요 수를 리턴할때에는 count 쿼리를 쓰면된다.
-count(*) where table2 t2 join t2.id = board_id
-좋아요 취소가 가능하려면 좋아요 테이블을 따로 빼야함.
-좋아요 테이블 따로 빼고 count쿼리를 친다고 성능문제가 발생할것 같진 않다.
-좋아요 테이블을 뺀다면 중복체크해서 좋아요, 좋아요 취소 기능을 넣어야한다.
+좋아요 -> 조회수로 대체
 
 - 커밋 메세지
 Add : 추가
@@ -226,4 +243,8 @@ Refeactor : 리팩토링
 Remove : 삭제
 
 - 할일
-테스트 코드작성(유저)
+조회수 업데이트 만들고 날짜다른 더미데이터 넣어서 정말 오늘 것만 가져오는지 + 조회수 정렬해서 가져오는지 테스트
+태그로 검색
+제목으로 검색
+핫 게시판(조회수)
+validation 사용법 보고 컨트롤러에서 validation 체크하기
