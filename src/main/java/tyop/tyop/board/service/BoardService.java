@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tyop.tyop.board.dto.BoardResponse;
+import tyop.tyop.board.model.Board;
 import tyop.tyop.board.model.BoardState;
 import tyop.tyop.board.repository.BoardRepository;
 import tyop.tyop.board.util.BoardMapper;
@@ -26,5 +27,14 @@ public class BoardService {
         return BoardMapper.entityToDtoPage(
                 boardRepository.findHotBoards(nowDate, normalState, pageable)
         );
+    }
+
+    public Board getBoardEntity(Long boardId) {
+        return boardRepository.findOneBoard(boardId);
+    }
+
+    @Transactional
+    public void updateHit(Long boardId) {
+        boardRepository.updateHit(boardId);
     }
 }
