@@ -10,6 +10,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tyop.tyop.board.dto.BoardRequest;
 import tyop.tyop.board.dto.BoardResponse;
 import tyop.tyop.board.model.Board;
 import tyop.tyop.board.model.BoardState;
@@ -19,7 +20,9 @@ import tyop.tyop.utility.CommonUtils;
 
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor
@@ -104,8 +107,8 @@ public class BoardController {
             return ResponseEntity.ok("게시글이 존재하지 않습니다.");
         }
 
-        if (board.getBoardState() == BoardState.BLOCK) {
-            return ResponseEntity.ok("신고된 게시글입니다.");
+        if (board.getBoardState() != BoardState.NORMAL) {
+            return ResponseEntity.ok("볼수 없는 게시글입니다.");
         }
 
         boardService.updateHit(id);
@@ -134,5 +137,51 @@ public class BoardController {
 
         String url = "/board/hot";
         return CommonUtils.makeResponseEntityForRedirect(url, request);
+    }
+
+    //edit
+
+    @GetMapping("/board/inquiry")
+    public ResponseEntity<?> inquiryBoards(Principal principal) {
+        List<BoardResponse> boards = boardService.getInquiryBoards(principal.getName());
+
+        return ResponseEntity.ok(boards);
+    }
+
+    @GetMapping("/board/inquiry/post")
+    public ResponseEntity<?> inquiryBoardPostPage() {
+        return ResponseEntity.ok("문의할점을 적어주시고, \n게시글 복구 신청의 경우 게시글의 번호와 문제점이 없다는 이유를 상세히 적어주십시요.");
+    }
+
+    @PostMapping("/board/inquiry/post")
+    public ResponseEntity<?> inquiryBoardPost(
+            @RequestBody BoardRequest boardRequest,
+            Principal principal,
+            HttpServletRequest request
+    ) {
+        Long boardId = boardService.saveInquiryBoard(boardRequest, principal.getName());
+
+        String url = "/board/inquiry/" + boardId;
+        return CommonUtils.makeResponseEntityForRedirect(url, request);
+    }
+
+    @GetMapping("/board/inquiry/{id}")
+    public ResponseEntity<?> inquiryBoardDetail(
+            @PathVariable("id") Long id,
+            Principal principal
+    ) {
+        Board board = boardService.getInquiryBoardEntity(id);
+
+        if (CommonUtils.isNull(board)) {
+            return ResponseEntity.ok("게시글이 존재하지 않습니다.");
+        }
+
+        String writer = board.getMember().getEmail();
+        String email = principal.getName();
+        if (!Objects.equals(writer, email)) {
+            return ResponseEntity.ok("작성자가 아니면 문의 게시글을 볼 수 없습니다.");
+        }
+
+        return ResponseEntity.ok(BoardMapper.entityToDtoDetail(board));
     }
 }

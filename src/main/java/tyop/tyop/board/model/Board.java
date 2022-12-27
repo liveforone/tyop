@@ -23,11 +23,10 @@ public class Board {
     private Long id;
 
     @Column(nullable = false)
-    @Size(max = 500)
     private String title;
 
     @Column(columnDefinition = "TEXT", nullable = false)
-    @Size(max = 100)
+    @Size(max = 500)
     private String content;
 
     private int hit;

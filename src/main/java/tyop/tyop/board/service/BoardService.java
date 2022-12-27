@@ -5,13 +5,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tyop.tyop.board.dto.BoardRequest;
 import tyop.tyop.board.dto.BoardResponse;
 import tyop.tyop.board.model.Board;
 import tyop.tyop.board.model.BoardState;
 import tyop.tyop.board.repository.BoardRepository;
 import tyop.tyop.board.util.BoardMapper;
+import tyop.tyop.member.model.Member;
+import tyop.tyop.member.repository.MemberRepository;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +23,7 @@ import java.time.LocalDate;
 public class BoardService {
 
     private final BoardRepository boardRepository;
+    private final MemberRepository memberRepository;
 
     public Page<BoardResponse> getHotBoards(Pageable pageable) {
         LocalDate nowDate = LocalDate.now();
@@ -46,8 +51,29 @@ public class BoardService {
         );
     }
 
+    public List<BoardResponse> getInquiryBoards(String email) {
+        return BoardMapper.entityToDtoList(
+                boardRepository.findInquiryBoards(BoardState.INQUIRY, email)
+        );
+    }
+
     public Board getBoardEntity(Long boardId) {
         return boardRepository.findOneBoard(boardId);
+    }
+
+    public Board getInquiryBoardEntity(Long boardId) {
+        return boardRepository.findOneInquiryBoard(boardId);
+    }
+
+    @Transactional
+    public Long saveInquiryBoard(BoardRequest boardRequest, String email) {
+        Member member = memberRepository.findByEmail(email);
+        boardRequest.setBoardState(BoardState.INQUIRY);
+        boardRequest.setMember(member);
+
+        return boardRepository.save(
+                BoardMapper.dtoToEntity(boardRequest)
+        ).getId();
     }
 
     @Transactional

@@ -4,7 +4,9 @@ import org.springframework.data.domain.Page;
 import tyop.tyop.board.dto.BoardRequest;
 import tyop.tyop.board.dto.BoardResponse;
 import tyop.tyop.board.model.Board;
-import tyop.tyop.utility.CommonUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class BoardMapper {
 
@@ -35,10 +37,14 @@ public class BoardMapper {
         return boards.map(BoardMapper::dtoBuilder);
     }
 
+    public static List<BoardResponse> entityToDtoList(List<Board> boards) {
+        return boards
+                .stream()
+                .map(BoardMapper::dtoBuilder)
+                .collect(Collectors.toList());
+    }
+
     public static BoardResponse entityToDtoDetail(Board board) {
-        if (CommonUtils.isNull(board)) {
-            return null;
-        }
         return BoardMapper.dtoBuilder(board);
     }
 }

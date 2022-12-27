@@ -10,6 +10,7 @@ import tyop.tyop.board.model.Board;
 import tyop.tyop.board.model.BoardState;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
@@ -25,8 +26,14 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     @Query("select b from Board b join b.member m where m.email = :email")
     Page<Board> findBoardsByEmail(@Param("email") String email, Pageable pageable);
 
+    @Query("select b from Board b join b.member m where b.boardState = :boardState and m.email = :email")
+    List<Board> findInquiryBoards(@Param("boardState") BoardState boardState, @Param("email") String email);
+
     @Query("select b from Board b join fetch b.member m where b.id = :id")
     Board findOneBoard(@Param("id") Long id);
+
+    @Query("select b from Board b join fetch b.member m where b.id = :id")
+    Board findOneInquiryBoard(@Param("id") Long id);
 
     @Modifying
     @Query("update Board b set b.hit = b.hit + 1 where b.id = :id")
