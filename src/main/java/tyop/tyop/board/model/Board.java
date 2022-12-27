@@ -27,9 +27,12 @@ public class Board {
     private String title;
 
     @Column(columnDefinition = "TEXT", nullable = false)
+    @Size(max = 100)
     private String content;
 
     private int hit;
+
+    private String tag;
 
     @Enumerated(value = EnumType.STRING)
     private BoardState boardState;
@@ -42,11 +45,20 @@ public class Board {
     private LocalDate createdDate;
 
     @Builder
-    public Board(Long id, String title, String content, int hit, BoardState boardState, Member member) {
+    public Board(
+            Long id,
+            String title,
+            String content,
+            int hit,
+            String tag,
+            BoardState boardState,
+            Member member
+    ) {
         this.id = id;
         this.title = title;
         this.content = content;
         this.hit = hit;
+        this.tag = tag;
         this.boardState = boardState;
         this.member = member;
     }
