@@ -4,10 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tyop.tyop.jwt.JwtTokenProvider;
@@ -21,7 +17,6 @@ import tyop.tyop.member.util.MemberMapper;
 import tyop.tyop.member.util.MemberUtils;
 import tyop.tyop.utility.CommonUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -62,10 +57,9 @@ public class MemberService {
 
     @Transactional
     public void signup(MemberRequest memberRequest) {
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        memberRequest.setPassword(passwordEncoder.encode(
-                memberRequest.getPassword()
-        ));
+        memberRequest.setPassword(
+                MemberUtils.encodePassword(memberRequest.getPassword())
+        );
 
         if (Objects.equals(memberRequest.getEmail(), "admin@tyop.com")) {
             memberRequest.setAuth(Role.ADMIN);
@@ -99,16 +93,6 @@ public class MemberService {
 
     @Transactional
     public void blockMember(String email) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        List<GrantedAuthority> updatedAuthorities = new ArrayList<>(auth.getAuthorities());
-        updatedAuthorities.add(new SimpleGrantedAuthority(Role.BLOCK.getValue()));
-        Authentication newAuth = new UsernamePasswordAuthenticationToken(
-                auth.getPrincipal(),
-                auth.getCredentials(),
-                updatedAuthorities
-        );
-        SecurityContextHolder.getContext().setAuthentication(newAuth);
-
         memberRepository.blockMember(Role.BLOCK, email);
     }
 
@@ -119,9 +103,7 @@ public class MemberService {
 
     @Transactional
     public void updatePassword(Long id, String inputPassword) {
-        //pw 암호화
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        String newPassword =  passwordEncoder.encode(inputPassword);
+        String newPassword = MemberUtils.encodePassword(inputPassword);
 
         memberRepository.updatePassword(id, newPassword);
     }

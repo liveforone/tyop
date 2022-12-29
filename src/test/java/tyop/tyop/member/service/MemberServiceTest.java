@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+import tyop.tyop.member.dto.MemberRequest;
 import tyop.tyop.member.model.Member;
 import tyop.tyop.member.model.Role;
 
@@ -17,56 +18,66 @@ class MemberServiceTest {
     @Autowired
     private EntityManager em;
 
-    @Transactional
-    public Long makeMember() {
-        Member member = Member.builder()
-                .email("yc1234@gmail.com")
-                .password("1234")
-                .auth(Role.MEMBER)
-                .build();
-        em.persist(member);
+    @Autowired
+    private MemberService memberService;
 
-        return member.getId();
+    public void createMember(String email, String password) {
+        MemberRequest dto = new MemberRequest();
+        dto.setEmail(email);
+        dto.setPassword(password);
+
+        memberService.signup(dto);
     }
 
     @Test
-    @Transactional
-    void updatePasswordTest() {
+    void signupTest() {
         //given
-        Long id = makeMember();
-        String inputPassword = "1111";
+        String email = "yc1234@gmail.com";
+        String password = "1234";
 
         //when
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        String newPassword =  passwordEncoder.encode(inputPassword);
-        Member member = Member.builder()
-                .id(id)
-                .password(newPassword)
-                .build();
-        em.merge(member);
-
-        Member findMember = em.find(Member.class, id);
+        createMember(email, password);
 
         //then
-        boolean matches = passwordEncoder.matches(inputPassword, findMember.getPassword());
-        Assertions.assertThat(matches).isTrue();
+        Member member = memberService.getMemberEntity(email);
+        Assertions.assertThat(member.getEmail()).isEqualTo(email);
     }
 
     @Test
-    @Transactional
     void blockMemberTest() {
         //given
-        Long id = makeMember();
+        String email = "yc1234@gmail.com";
+        String password = "1234";
+        createMember(email, password);
 
         //when
-        Member member = em.find(Member.class, id);
-        Member updatedMember = Member.builder()
-                .id(id)
-                .auth(Role.BLOCK)
-                .build();
-        em.merge(updatedMember);
+        memberService.blockMember(email);
+        em.flush();
+        em.clear();
 
         //then
-        Assertions.assertThat(em.find(Member.class, id).getAuth()).isEqualTo(Role.BLOCK);
+        Assertions
+                .assertThat(memberService.getMemberEntity(email).getAuth())
+                .isEqualTo(Role.BLOCK);
+    }
+
+    @Test
+    void updatePasswordTest() {
+        //given
+        String email = "yc1234@gmail.com";
+        String password = "1234";
+        createMember(email, password);
+
+        //when
+        Member member = memberService.getMemberEntity(email);
+        String newPassword = "9999";
+        memberService.updatePassword(member.getId(), newPassword);
+        em.flush();
+        em.clear();
+
+        //then
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        boolean matches = passwordEncoder.matches(newPassword, memberService.getMemberEntity(email).getPassword());
+        Assertions.assertThat(matches).isTrue();
     }
 }

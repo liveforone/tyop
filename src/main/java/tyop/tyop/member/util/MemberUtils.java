@@ -14,8 +14,16 @@ public class MemberUtils {
 
     private static final int BLOCK_COUNT = 10;
 
+    public static boolean checkBlockCount(Member member) {
+        return member.getBlockCount() >= BLOCK_COUNT;
+    }
+
     public static boolean isDuplicateEmail(Member member) {
 
+        return !CommonUtils.isNull(member);
+    }
+
+    public static boolean isDuplicateNickname(Member member) {
         return !CommonUtils.isNull(member);
     }
 
@@ -27,10 +35,6 @@ public class MemberUtils {
 
     public static String makeRandomNickname() {
         return RandomStringUtils.randomAlphabetic(10);
-    }
-
-    public static boolean isDuplicateNickname(Member member) {
-        return !CommonUtils.isNull(member);
     }
 
     public static HttpHeaders makeHttpHeadersWhenSignupRedirect(HttpServletRequest request) {
@@ -45,7 +49,8 @@ public class MemberUtils {
         return httpHeaders;
     }
 
-    public static boolean checkBlockCount(Member member) {
-        return member.getBlockCount() == BLOCK_COUNT;
+    public static String encodePassword(String password) {
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        return passwordEncoder.encode(password);
     }
 }
