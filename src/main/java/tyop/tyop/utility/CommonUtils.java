@@ -6,6 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 import tyop.tyop.jwt.JwtAuthenticationFilter;
 
 import java.util.List;
@@ -35,6 +36,10 @@ public class CommonUtils {
         }
 
         return false;
+    }
+
+    public static boolean isEmptyMultipartFile(List<MultipartFile> files) {
+        return files.get(0).getContentType() == null;
     }
 
     /*

@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import tyop.tyop.board.model.Board;
-import tyop.tyop.board.repository.BoardRepository;
 import tyop.tyop.uploadFile.dto.UploadFileRequest;
 import tyop.tyop.uploadFile.dto.UploadFileResponse;
 import tyop.tyop.uploadFile.model.UploadFile;
@@ -25,8 +24,6 @@ import java.util.UUID;
 public class UploadFileService {
 
     private final UploadFileRepository uploadFileRepository;
-    private final BoardRepository boardRepository;
-    private static final int LIMIT_UPLOAD_SIZE = 4;
 
     public List<UploadFileResponse> getFiles(Long boardId) {
         return UploadFileMapper.entityToDtoList(
@@ -35,44 +32,17 @@ public class UploadFileService {
     }
 
     @Transactional
-    public void saveFile(List<MultipartFile> uploadFile, Long boardId) throws IOException {
-        Board board = boardRepository.findOneBoard(boardId);
+    public void saveFile(MultipartFile uploadFile, Board board) throws IOException {
+        UUID uuid = UUID.randomUUID();
+        String saveFileName = uuid + "_" + uploadFile.getOriginalFilename();
 
-        int size = uploadFile.size();
+        uploadFile.transferTo(new File(saveFileName));
 
-        if (size > 4) {
-
-            for (int i=0; i<LIMIT_UPLOAD_SIZE; i++) {
-                MultipartFile file = uploadFile.get(i);
-
-                UUID uuid = UUID.randomUUID();
-                String saveFileName = uuid + "_" + file.getOriginalFilename();
-
-                file.transferTo(new File(saveFileName));
-
-                UploadFileRequest dto = UploadFileRequest.builder()
-                        .saveFileName(saveFileName)
-                        .board(board)
-                        .build();
-                uploadFileRepository.save(UploadFileMapper.dtoToEntity(dto));
-            }
-
-        } else {
-
-            for (MultipartFile file : uploadFile) {
-                UUID uuid = UUID.randomUUID();
-                String saveFileName = uuid + "_" + file.getOriginalFilename();
-
-                file.transferTo(new File(saveFileName));
-
-                UploadFileRequest dto = UploadFileRequest.builder()
-                        .saveFileName(saveFileName)
-                        .board(board)
-                        .build();
-                uploadFileRepository.save(UploadFileMapper.dtoToEntity(dto));
-            }
-
-        }
+        UploadFileRequest dto = UploadFileRequest.builder()
+                .saveFileName(saveFileName)
+                .board(board)
+                .build();
+        uploadFileRepository.save(UploadFileMapper.dtoToEntity(dto));
     }
 
     @Transactional

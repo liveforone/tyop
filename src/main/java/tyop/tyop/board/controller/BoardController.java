@@ -27,10 +27,7 @@ import tyop.tyop.utility.CommonUtils;
 
 import java.io.IOException;
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,6 +37,7 @@ public class BoardController {
     private final BoardService boardService;
     private final MemberService memberService;
     private final UploadFileService uploadFileService;
+    private static final int LIMIT_UPLOAD_SIZE = 4;
 
     @GetMapping("/board/hot")
     public ResponseEntity<?> hotBoards(
@@ -121,18 +119,21 @@ public class BoardController {
                     .ok("비속어가 포함된 게시글입니다.. \n올바른 단어를 사용하세요.");
         }
 
-        if (uploadFile.isEmpty()) {
-            Long boardId = boardService.saveBoard(boardRequest, email);
-            log.info("게시글 저장 성공");
-
-            String url = "/board/" + boardId;
-            return CommonUtils.makeResponseEntityForRedirect(url, request);
-        }
-
         Long boardId = boardService.saveBoard(boardRequest, email);
         log.info("게시글 저장 성공");
-        uploadFileService.saveFile(uploadFile, boardId);
-        log.info("파일 저장 성공");
+
+        if (!CommonUtils.isEmptyMultipartFile(uploadFile)) {
+            Board board = boardService.getBoardEntity(boardId);
+            int cnt = 0;
+            for (MultipartFile file : uploadFile) {
+                if (cnt == LIMIT_UPLOAD_SIZE) {
+                    break;
+                }
+                uploadFileService.saveFile(file, board);
+                log.info("파일 저장 성공");
+                cnt++;
+            }
+        }
 
         String url = "/board/" + boardId;
         return CommonUtils.makeResponseEntityForRedirect(url, request);
@@ -236,19 +237,22 @@ public class BoardController {
                     .ok("비속어가 포함된 게시글입니다.. \n올바른 단어를 사용하세요.");
         }
 
-        if (uploadFile.isEmpty()) {
-            boardService.editBoard(boardRequest, id);
-            log.info("게시글 수정 완료");
-
-            String url = "/board/" + id;
-            return CommonUtils.makeResponseEntityForRedirect(url, request);
-        }
-
         boardService.editBoard(boardRequest, id);
         log.info("게시글 수정 완료");
-        uploadFileService.deleteFile(id);
-        uploadFileService.saveFile(uploadFile, id);
-        log.info("파일 수정 완료");
+
+        if (!CommonUtils.isEmptyMultipartFile(uploadFile)) {
+            uploadFileService.deleteFile(id);
+
+            int cnt = 0;
+            for (MultipartFile file : uploadFile) {
+                if (file.isEmpty() || cnt == LIMIT_UPLOAD_SIZE) {
+                    break;
+                }
+                uploadFileService.saveFile(file, board);
+                log.info("파일 저장 성공");
+                cnt = cnt + 1;
+            }
+        }
 
         String url = "/board/" + id;
         return CommonUtils.makeResponseEntityForRedirect(url, request);
@@ -296,5 +300,31 @@ public class BoardController {
         }
 
         return ResponseEntity.ok(BoardMapper.entityToDtoDetail(board));
+    }
+
+    @PostMapping("/board/delete/{id}")
+    public ResponseEntity<?> deleteBoard(
+            @PathVariable("id") Long id,
+            Principal principal,
+            HttpServletRequest request
+    ) {
+        Board board = boardService.getInquiryBoardEntity(id);
+
+        if (CommonUtils.isNull(board)) {
+            return ResponseEntity.ok("게시글이 존재하지 않습니다.");
+        }
+
+        String writer = board.getMember().getEmail();
+        String email = principal.getName();
+        if (!Objects.equals(writer, email)) {
+            return ResponseEntity.ok("작성자가 아니면 삭제가 불가능합니다.");
+        }
+
+        uploadFileService.deleteFile(id);
+        boardService.deleteBoard(id);
+        log.info("게시글과 파일 모두 삭제 완료");
+
+        String url = "/board/hot";
+        return CommonUtils.makeResponseEntityForRedirect(url, request);
     }
 }

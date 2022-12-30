@@ -110,4 +110,9 @@ public class BoardService {
     public void reportBoard(Long boardId) {
         boardRepository.reportBoard(BoardState.BLOCK, boardId);
     }
+
+    @Transactional
+    public void deleteBoard(Long boardId) {
+        boardRepository.deleteById(boardId);
+    }
 }
