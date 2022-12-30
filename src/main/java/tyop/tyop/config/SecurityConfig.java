@@ -39,7 +39,8 @@ public class SecurityConfig {
                                 "/",
                                 "/member/signup",
                                 "/member/login",
-                                "/member/prohibition"
+                                "/member/prohibition",
+                                "/file/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/admin/**"
