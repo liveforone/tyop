@@ -77,6 +77,20 @@ public class BoardService {
     }
 
     @Transactional
+    public void editBoard(BoardRequest boardRequest, Long boardId) {
+        Board board = boardRepository.findOneBoard(boardId);
+
+        boardRequest.setId(board.getId());
+        boardRequest.setHit(board.getHit());
+        boardRequest.setBoardState(board.getBoardState());
+        boardRequest.setMember(board.getMember());
+
+        boardRepository.save(
+                BoardMapper.dtoToEntity(boardRequest)
+        );
+    }
+
+    @Transactional
     public Long saveInquiryBoard(BoardRequest boardRequest, String email) {
         Member member = memberRepository.findByEmail(email);
         boardRequest.setBoardState(BoardState.INQUIRY);

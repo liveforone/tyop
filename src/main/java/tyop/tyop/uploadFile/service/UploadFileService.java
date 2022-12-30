@@ -1,6 +1,7 @@
 package tyop.tyop.uploadFile.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -8,6 +9,7 @@ import tyop.tyop.board.model.Board;
 import tyop.tyop.board.repository.BoardRepository;
 import tyop.tyop.uploadFile.dto.UploadFileRequest;
 import tyop.tyop.uploadFile.dto.UploadFileResponse;
+import tyop.tyop.uploadFile.model.UploadFile;
 import tyop.tyop.uploadFile.repository.UploadFileRepository;
 import tyop.tyop.uploadFile.util.UploadFileMapper;
 
@@ -19,6 +21,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class UploadFileService {
 
     private final UploadFileRepository uploadFileRepository;
@@ -69,6 +72,20 @@ public class UploadFileService {
                 uploadFileRepository.save(UploadFileMapper.dtoToEntity(dto));
             }
 
+        }
+    }
+
+    @Transactional
+    public void deleteFile(Long boardId) {
+        List<UploadFile> files = uploadFileRepository.findFilesByBoardId(boardId);
+
+        for (UploadFile uploadFile : files) {
+            String saveFileName = uploadFile.getSaveFileName();
+            File file = new File("C:\\Temp\\upload\\" + saveFileName);
+            if (file.delete()) {
+                log.info("file : " + saveFileName + " 삭제 완료");
+            }
+            uploadFileRepository.deleteById(uploadFile.getId());
         }
     }
 }

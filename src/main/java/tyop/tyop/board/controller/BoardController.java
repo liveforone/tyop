@@ -182,6 +182,78 @@ public class BoardController {
         return CommonUtils.makeResponseEntityForRedirect(url, request);
     }
 
+    @GetMapping("/board/edit/{id}")
+    public ResponseEntity<?> editBoardPage(
+            @PathVariable("id") Long id,
+            Principal principal
+    ) {
+        Board board = boardService.getBoardEntity(id);
+
+        if (CommonUtils.isNull(board)) {
+            return ResponseEntity.ok("존재하지 않는 게시글입니다.");
+        }
+
+        String email = principal.getName();
+        String writer = board.getMember().getEmail();
+        if (!Objects.equals(email, writer)) {
+            return ResponseEntity.ok("작성자가 아니면 수정이 불가능합니다.");
+        }
+
+        return ResponseEntity.ok(BoardMapper.entityToDtoDetail(board));
+    }
+
+    @PostMapping("/board/edit/{id}")
+    public ResponseEntity<?> editBoard(
+            @PathVariable("id") Long id,
+            @RequestPart List<MultipartFile> uploadFile,
+            @RequestPart("boardRequest") @Valid BoardRequest boardRequest,
+            Principal principal,
+            BindingResult bindingResult,
+            HttpServletRequest request
+    ) throws IOException {
+        Board board = boardService.getBoardEntity(id);
+
+        if (CommonUtils.isNull(board)) {
+            return ResponseEntity.ok("존재하지 않는 게시글입니다.");
+        }
+
+        String email = principal.getName();
+        String writer = board.getMember().getEmail();
+        if (!Objects.equals(email, writer)) {
+            return ResponseEntity.ok("작성자가 아니면 수정이 불가능합니다.");
+        }
+
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("제목은 50자, 게시글은 500자의 길이를 초과해선 안됩니다.");
+        }
+
+        String content = boardRequest.getContent();
+        if (FilteringBot.ignoreBlankCheckBadWord(content)) {
+            memberService.plusBlockCount(email);
+            return ResponseEntity
+                    .ok("비속어가 포함된 게시글입니다.. \n올바른 단어를 사용하세요.");
+        }
+
+        if (uploadFile.isEmpty()) {
+            boardService.editBoard(boardRequest, id);
+            log.info("게시글 수정 완료");
+
+            String url = "/board/" + id;
+            return CommonUtils.makeResponseEntityForRedirect(url, request);
+        }
+
+        boardService.editBoard(boardRequest, id);
+        log.info("게시글 수정 완료");
+        uploadFileService.deleteFile(id);
+        uploadFileService.saveFile(uploadFile, id);
+        log.info("파일 수정 완료");
+
+        String url = "/board/" + id;
+        return CommonUtils.makeResponseEntityForRedirect(url, request);
+    }
+
     @GetMapping("/board/inquiry")
     public ResponseEntity<?> inquiryBoards(Principal principal) {
         List<BoardResponse> boards = boardService.getInquiryBoards(principal.getName());
