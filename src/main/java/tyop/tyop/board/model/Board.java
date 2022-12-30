@@ -1,7 +1,6 @@
 package tyop.tyop.board.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,7 +25,6 @@ public class Board {
     private String title;
 
     @Column(columnDefinition = "TEXT", nullable = false)
-    @Size(max = 500)
     private String content;
 
     private int hit;

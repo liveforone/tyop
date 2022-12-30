@@ -66,6 +66,17 @@ public class BoardService {
     }
 
     @Transactional
+    public Long saveBoard(BoardRequest boardRequest, String email) {
+        Member member = memberRepository.findByEmail(email);
+        boardRequest.setBoardState(BoardState.NORMAL);
+        boardRequest.setMember(member);
+
+        return boardRepository.save(
+                BoardMapper.dtoToEntity(boardRequest)
+        ).getId();
+    }
+
+    @Transactional
     public Long saveInquiryBoard(BoardRequest boardRequest, String email) {
         Member member = memberRepository.findByEmail(email);
         boardRequest.setBoardState(BoardState.INQUIRY);

@@ -1,5 +1,7 @@
 package tyop.tyop.board.dto;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +13,10 @@ import tyop.tyop.member.model.Member;
 public class BoardRequest {
 
     private Long id;
+    @NotNull
+    @Size(max = 50)
     private String title;
+    @Size(max = 500)
     private String content;
     private int hit;
     private String tag;

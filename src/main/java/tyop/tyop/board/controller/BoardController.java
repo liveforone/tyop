@@ -1,6 +1,7 @@
 package tyop.tyop.board.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -8,16 +9,23 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tyop.tyop.board.dto.BoardRequest;
 import tyop.tyop.board.dto.BoardResponse;
 import tyop.tyop.board.model.Board;
 import tyop.tyop.board.model.BoardState;
 import tyop.tyop.board.service.BoardService;
 import tyop.tyop.board.util.BoardMapper;
+import tyop.tyop.filteringBot.FilteringBot;
+import tyop.tyop.member.service.MemberService;
+import tyop.tyop.uploadFile.service.UploadFileService;
 import tyop.tyop.utility.CommonUtils;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +38,8 @@ import java.util.Objects;
 public class BoardController {
 
     private final BoardService boardService;
+    private final MemberService memberService;
+    private final UploadFileService uploadFileService;
 
     @GetMapping("/board/hot")
     public ResponseEntity<?> hotBoards(
@@ -88,13 +98,45 @@ public class BoardController {
         return ResponseEntity.ok("게시글 생성 페이지입니다.");
     }
 
-//    @PostMapping("/board/post")
-//    public ResponseEntity<?> boardPost(
-//            Principal principal
-//            //멀티팔트 파일
-//    ) {
-//        //파일 만들고 파일 저장 넣기
-//    }
+    @PostMapping("/board/post")
+    public ResponseEntity<?> boardPost(
+            @RequestPart List<MultipartFile> uploadFile,
+            @RequestPart("boardRequest") @Valid BoardRequest boardRequest,
+            Principal principal,
+            BindingResult bindingResult,
+            HttpServletRequest request
+    ) throws IllegalStateException, IOException {
+        String email = principal.getName();
+
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("제목은 50자, 게시글은 500자의 길이를 초과해선 안됩니다.");
+        }
+
+        String content = boardRequest.getContent();
+        if (FilteringBot.ignoreBlankCheckBadWord(content)) {
+            memberService.plusBlockCount(email);
+            return ResponseEntity
+                    .ok("비속어가 포함된 게시글입니다.. \n올바른 단어를 사용하세요.");
+        }
+
+        if (uploadFile.isEmpty()) {
+            Long boardId = boardService.saveBoard(boardRequest, email);
+            log.info("게시글 저장 성공");
+
+            String url = "/board/" + boardId;
+            return CommonUtils.makeResponseEntityForRedirect(url, request);
+        }
+
+        Long boardId = boardService.saveBoard(boardRequest, email);
+        log.info("게시글 저장 성공");
+        uploadFileService.saveFile(uploadFile, boardId);
+        log.info("파일 저장 성공");
+
+        String url = "/board/" + boardId;
+        return CommonUtils.makeResponseEntityForRedirect(url, request);
+    }
 
     @GetMapping("/board/{id}")
     public ResponseEntity<?> boardDetail(
@@ -117,6 +159,7 @@ public class BoardController {
         Map<String, Object> map = new HashMap<>();
         map.put("board", BoardMapper.entityToDtoDetail(board));
         map.put("user", principal.getName());
+        map.put("file", uploadFileService.getFiles(id));
 
         return ResponseEntity.ok(map);
     }
@@ -139,8 +182,6 @@ public class BoardController {
         return CommonUtils.makeResponseEntityForRedirect(url, request);
     }
 
-    //edit
-
     @GetMapping("/board/inquiry")
     public ResponseEntity<?> inquiryBoards(Principal principal) {
         List<BoardResponse> boards = boardService.getInquiryBoards(principal.getName());
@@ -155,7 +196,7 @@ public class BoardController {
 
     @PostMapping("/board/inquiry/post")
     public ResponseEntity<?> inquiryBoardPost(
-            @RequestBody BoardRequest boardRequest,
+            @RequestBody @Valid BoardRequest boardRequest,
             Principal principal,
             HttpServletRequest request
     ) {
