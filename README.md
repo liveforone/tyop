@@ -68,6 +68,21 @@ POST      /member/withdraw : 회원탈퇴(토큰 필요), text 형식 문자열 
 GET       /admin : 어드민 페이지(토큰 필요)
 GET       /member/prohibition : 403 페이지(토큰 불필요)
 ```
+### Board
+```
+[GET] /board/hot
+[GET] /board/search-title
+[GET] /board/search-tag
+[GET] /board/my-board
+[GET/POST] /board/post
+[GET] /board/{id}
+[POST] /board/report/{id}
+[GET/POST] /board/edit/{id}
+[GET] /board/inquiry
+[GET/POST] /board/inquiry/post
+[GET] /board/inquiry/{id}
+[POST] /board/delete/{id}
+```
 ## Json 바디 설계
 ### Member
 ```
@@ -154,16 +169,16 @@ insert into board(board_state, content, created_date, hit, member_id, tag, title
 * map으로 모아서 보내는 방식을 선택했다.
 * 이렇게 하면 {객체1, {객체2,{객체3..}}} 과 같은 복잡하고 계속 참조해야하는 json방식에서
 * {객체1}, {객체2}... 과 같은 형식으로 복잡하지 않고 단일한 객체 형식의 json을 유지할 수 있기 때문이다.
-## 파일 업로드 갯수 제한
-* 파일은 4개까지만 업로드를 허용하였다.
-* 파일을 하나씩 저장하는 방법을 사용하였다.
-* 그러다 보니 다중 파일은 반복문을 사용하여서 insert 쿼리를 날려주어야하는데,
-* 파일의 갯수가 4개가 넘어가는 파일들을 어떻게 처리할지 고민하였다.
-* 나의 방법은 다음과 같이 했다.
-* 파일이 4개를 초과한다면 for문의 반복 횟수를 4로 제한해서 돌린다.
-* 4개를 초과하지 않는다면 for each문을 사용해서 입력받은 파일의 갯수 만큼 반복문을 돌린다.
-* 비교 연산자의 우선순위에서도 알 수 있듯이, '=' 이 들어가지 않고도 비교가 가능하면 가급적 안넣는 것이 좋다.
-* 우선순위인 연산자들로 연산을 해야 보다 성능에서 우위를 가진다.
+## 다중 파일 - List<MultipartFile>
+* 다중파일을 매개변수로 넣고 클라이언트로부터 입력을 받으면
+* 아무 값이 입력되지 않아도 empty 상태가 아니다.
+* 0번째 인덱스가 add 되어있고, 오리지날네임은 "" 비어있고,
+* 컨텐츠 타입은 null로 나온다.
+* 그러나 size로 배열의 길이를 출력하면 1이 출력된다.
+* 즉 빈 값이 0번째 인덱스에 기본적으로 들어가게 된다.
+* 따라서 배열이 비어있는지, 즉 사용자가 파일을 업로드 하지 않았는지를 체크하려면
+* originalName == "" 으로 체크하거나, contentType == null 로 체크하면된다.
+* 나는 이중에 contentType == null로 체크하는 함수를 만들어 사용했다.
 ## cascade와 같은 옵션
 
 
@@ -285,9 +300,5 @@ a and b 이면 a를 먼저 검증 하기 때문에 저 a에 무슨 값을 넣어
 운영자의 판단에 따라 잘못된 신고로 인한 글이면 복구 해준다.
 
 
-게시글 수정(필터링 + 블락카운트 up) + 파일 저장
-게시글 삭제
-게시글이 삭제되면 파일도 삭제됨
-board api 작성
 댓글
 게시글이 삭제되면 댓글도 삭제됨
