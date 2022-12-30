@@ -55,18 +55,18 @@
 ## Api 설계
 ### Member
 ```
-GET       / : 홈(토큰 불필요)
-GET|POST  /member/signup : 회원가입(토큰 불필요)
-GET|POST  /member/login : 로그인(토큰 불필요)
-GET       /member/logout : 로그아웃, get으로 받아도 정상 작동(토큰 불필요)
-GET       /member/my-page : 마이페이지(토큰 필요)
-POST      /member/change-nickname : 닉네임 변경(토큰 필요), text 형식 문자열 닉네임 필요
-POST      /member/change-email : 이메일 변경, ChangeEmailRequest 형식 필요
-POST      /member/change-password : 비밀번호 변경, ChangePasswordRequest 형식 필요
-POST      /member/change-introduction : 한줄소개 변경, text 형식 문자열 한줄소개 필요
-POST      /member/withdraw : 회원탈퇴(토큰 필요), text 형식 문자열 비밀번호 필요
-GET       /admin : 어드민 페이지(토큰 필요)
-GET       /member/prohibition : 403 페이지(토큰 불필요)
+[GET] / : 홈(토큰 불필요)
+[GET/POST] /member/signup : 회원가입(토큰 불필요)
+[GET/POST] /member/login : 로그인(토큰 불필요)
+[GET] /member/logout : 로그아웃, get으로 받아도 정상 작동(토큰 불필요)
+[GET] /member/my-page : 마이페이지(토큰 필요)
+[POST] /member/change-nickname : 닉네임 변경(토큰 필요), text 형식 문자열 닉네임 필요
+[POST] /member/change-email : 이메일 변경, ChangeEmailRequest 형식 필요
+[POST] /member/change-password : 비밀번호 변경, ChangePasswordRequest 형식 필요
+[POST] /member/change-introduction : 한줄소개 변경, text 형식 문자열 한줄소개 필요
+[POST] /member/withdraw : 회원탈퇴(토큰 필요), text 형식 문자열 비밀번호 필요
+[GET] /admin : 어드민 페이지(토큰 필요)
+[GET] /member/prohibition : 403 페이지(토큰 불필요)
 ```
 ### Board
 ```
