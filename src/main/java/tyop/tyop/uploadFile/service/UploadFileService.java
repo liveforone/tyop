@@ -35,23 +35,40 @@ public class UploadFileService {
     public void saveFile(List<MultipartFile> uploadFile, Long boardId) throws IOException {
         Board board = boardRepository.findOneBoard(boardId);
 
-        for (int i=0; i<LIMIT_UPLOAD_SIZE; i++) {
-            MultipartFile file = uploadFile.get(i);
+        int size = uploadFile.size();
 
-            if (file.isEmpty()) {
-                break;
+        if (size > 4) {
+
+            for (int i=0; i<LIMIT_UPLOAD_SIZE; i++) {
+                MultipartFile file = uploadFile.get(i);
+
+                UUID uuid = UUID.randomUUID();
+                String saveFileName = uuid + "_" + file.getOriginalFilename();
+
+                file.transferTo(new File(saveFileName));
+
+                UploadFileRequest dto = UploadFileRequest.builder()
+                        .saveFileName(saveFileName)
+                        .board(board)
+                        .build();
+                uploadFileRepository.save(UploadFileMapper.dtoToEntity(dto));
             }
 
-            UUID uuid = UUID.randomUUID();
-            String saveFileName = uuid + "_" + file.getOriginalFilename();
+        } else {
 
-            file.transferTo(new File(saveFileName));
+            for (MultipartFile file : uploadFile) {
+                UUID uuid = UUID.randomUUID();
+                String saveFileName = uuid + "_" + file.getOriginalFilename();
 
-            UploadFileRequest dto = UploadFileRequest.builder()
-                    .saveFileName(saveFileName)
-                    .board(board)
-                    .build();
-            uploadFileRepository.save(UploadFileMapper.dtoToEntity(dto));
+                file.transferTo(new File(saveFileName));
+
+                UploadFileRequest dto = UploadFileRequest.builder()
+                        .saveFileName(saveFileName)
+                        .board(board)
+                        .build();
+                uploadFileRepository.save(UploadFileMapper.dtoToEntity(dto));
+            }
+
         }
     }
 }
