@@ -70,18 +70,22 @@
 ```
 ### Board
 ```
-[GET] /board/hot
-[GET] /board/search-title
-[GET] /board/search-tag
-[GET] /board/my-board
-[GET/POST] /board/post
-[GET] /board/{id}
-[POST] /board/report/{id}
-[GET/POST] /board/edit/{id}
-[GET] /board/inquiry
-[GET/POST] /board/inquiry/post
-[GET] /board/inquiry/{id}
-[POST] /board/delete/{id}
+[GET] /board/hot : 핫게시판, 조회수 순으로 정렬되며 오늘 작성된 글만 올라온다.
+[GET] /board/search-title : 제목으로 검색
+[GET] /board/search-tag : 태그로 검색
+[GET] /board/my-board : 내가 작성한 글
+[GET/POST] /board/post : 게시글 작성, BoardReqeust 형식 json body 필요
+[GET] /board/{id} : 게시글 조회
+[POST] /board/report/{id} : 게시글 신고
+[GET/POST] /board/edit/{id} : 게시글 수정, BoardReqeust 형식 json body 필요
+[GET] /board/inquiry : 문의 게시판, 내가 작성한 문의 게시판만 볼 수 있다.
+[GET/POST] /board/inquiry/post : 문의글 작성
+[GET] /board/inquiry/{id} : 내가 작성한 문의글 조회
+[POST] /board/delete/{id} : 게시글 삭제, 파일도 같이 삭제됨
+```
+### UploadFile
+```
+[GET] /file/{saveFileName} : 로컬 파일 보기
 ```
 ## Json 바디 설계
 ### Member
