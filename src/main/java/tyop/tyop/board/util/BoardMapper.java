@@ -5,9 +5,6 @@ import tyop.tyop.board.dto.BoardRequest;
 import tyop.tyop.board.dto.BoardResponse;
 import tyop.tyop.board.model.Board;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 public class BoardMapper {
 
     public static Board dtoToEntity(BoardRequest boardRequest) {
@@ -35,13 +32,6 @@ public class BoardMapper {
 
     public static Page<BoardResponse> entityToDtoPage(Page<Board> boards) {
         return boards.map(BoardMapper::dtoBuilder);
-    }
-
-    public static List<BoardResponse> entityToDtoList(List<Board> boards) {
-        return boards
-                .stream()
-                .map(BoardMapper::dtoBuilder)
-                .collect(Collectors.toList());
     }
 
     public static BoardResponse entityToDtoDetail(Board board) {

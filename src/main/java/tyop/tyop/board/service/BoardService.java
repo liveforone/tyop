@@ -15,7 +15,6 @@ import tyop.tyop.member.model.Member;
 import tyop.tyop.member.repository.MemberRepository;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -51,9 +50,14 @@ public class BoardService {
         );
     }
 
-    public List<BoardResponse> getInquiryBoards(String email) {
-        return BoardMapper.entityToDtoList(
-                boardRepository.findInquiryBoards(BoardState.INQUIRY, email)
+    public Page<BoardResponse> getAllInquiryBoards(Pageable pageable) {
+        return BoardMapper.entityToDtoPage(
+                boardRepository.findAllInquiryBoards(BoardState.INQUIRY, pageable)
+        );
+    }
+    public Page<BoardResponse> getInquiryBoards(String email, Pageable pageable) {
+        return BoardMapper.entityToDtoPage(
+                boardRepository.findInquiryBoards(BoardState.INQUIRY, email, pageable)
         );
     }
 

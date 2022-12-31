@@ -21,6 +21,8 @@ import tyop.tyop.board.model.BoardState;
 import tyop.tyop.board.service.BoardService;
 import tyop.tyop.board.util.BoardMapper;
 import tyop.tyop.filteringBot.FilteringBot;
+import tyop.tyop.member.model.Member;
+import tyop.tyop.member.model.Role;
 import tyop.tyop.member.service.MemberService;
 import tyop.tyop.uploadFile.service.UploadFileService;
 import tyop.tyop.utility.CommonUtils;
@@ -259,9 +261,21 @@ public class BoardController {
     }
 
     @GetMapping("/board/inquiry")
-    public ResponseEntity<?> inquiryBoards(Principal principal) {
-        List<BoardResponse> boards = boardService.getInquiryBoards(principal.getName());
+    public ResponseEntity<?> inquiryBoards(
+            @PageableDefault(page = 0, size = 10)
+            @SortDefault.SortDefaults({
+                    @SortDefault(sort = "id", direction = Sort.Direction.DESC)
+            }) Pageable pageable,
+            Principal principal
+    ) {
+        String email = principal.getName();
+        Member member = memberService.getMemberEntity(email);
 
+        if (member.getAuth() == Role.ADMIN) {
+            return ResponseEntity.ok(boardService.getAllInquiryBoards(pageable));
+        }
+
+        Page<BoardResponse> boards = boardService.getInquiryBoards(email, pageable);
         return ResponseEntity.ok(boards);
     }
 
@@ -295,7 +309,9 @@ public class BoardController {
 
         String writer = board.getMember().getEmail();
         String email = principal.getName();
-        if (!Objects.equals(writer, email)) {
+        Member member = memberService.getMemberEntity(email);
+        if (!Objects.equals(writer, email)
+                || member.getAuth() != Role.ADMIN) {
             return ResponseEntity.ok("작성자가 아니면 문의 게시글을 볼 수 없습니다.");
         }
 
