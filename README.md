@@ -111,6 +111,7 @@ new
 ```
 ### Board
 ```
+[post, edit]
 {
   "title": "test_title",
   "content": "test_content",
@@ -200,13 +201,7 @@ insert into board(board_state, content, created_date, hit, member_id, tag, title
 * 또한 db자체에서 무언가를 수정하고 변경하고 삭제하는 것은 위험한 일이니 지양하자.
 * cascade를 대체하는 방법은 간단하다.
 * 삭제할 one 엔티티를 삭제하고 해당 id를 fk로 가지고 있는 데이터를 모두 찾아 삭제하면된다.
-
-
-- 엔티티 네이밍
-member : 활동 점수, 신고 수마다 카운트, 이름, 한줄소개
-board : (오늘의 순위로 뽑는것, 그룹핑 쿼리로 날짜 처리하고 조회수 desc로 가져오면됨), 신고기능, 게시글 삭제시 파일도 같이 삭제해야한다.
-comment : 신고 기능, 필터링, 언급 기능
-Bookmark : 북마크 기능
+* 댓글과 파일 모두 게시글이 삭제되면 같이 삭제된다.
 
 ```
 SET foreign_key_checks = 0;
@@ -216,7 +211,5 @@ SET foreign_key_checks = 1;
 ```
 
 
-댓글
-댓글 조회시 상태로 조회하는 것 잊지말기(신고 댓글을 가져오면 안된다.)
 댓글 신고 -> state가 신고로 변경
-게시글이 삭제되면 댓글도 삭제됨
+북마크
