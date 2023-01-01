@@ -22,6 +22,10 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("update Comment c set c.content = :content where c.id = :id")
     void editComment(@Param("content") String content, @Param("id") Long id);
 
+    @Modifying
+    @Query("update Comment c set c.commentState = :commentState where c.id = :id")
+    void reportComment(@Param("commentState") CommentState commentState, @Param("id") Long id);
+
     @Modifying(clearAutomatically = true)
     @Query("delete from Comment c where c.board = :board")
     void deleteBulkCommentByBoardId(@Param("board") Board board);

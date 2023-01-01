@@ -103,6 +103,25 @@ public class CommentController {
         return CommonUtils.makeResponseEntityForRedirect(url, request);
     }
 
+    @PostMapping("/comment/report/{commentId}")
+    public ResponseEntity<?> commentReport(
+            @PathVariable("commentId") Long commentId,
+            HttpServletRequest request
+    ) {
+        Comment comment = commentService.getCommentEntity(commentId);
+
+        if (CommonUtils.isNull(comment)) {
+            return ResponseEntity.ok("존재하지 않는 댓글입니다.");
+        }
+
+        commentService.reportComment(commentId);
+        log.info("댓글 신고 성공");
+
+        Long boardId = comment.getBoard().getId();
+        String url = "/comment/" + boardId;
+        return CommonUtils.makeResponseEntityForRedirect(url, request);
+    }
+
     @PostMapping("/comment/delete/{commentId}")
     public ResponseEntity<?> commentDelete(
             @PathVariable("commentId") Long commentId,

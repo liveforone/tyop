@@ -52,6 +52,11 @@ public class CommentService {
     }
 
     @Transactional
+    public void reportComment(Long commentId) {
+        commentRepository.reportComment(CommentState.BLOCK, commentId);
+    }
+
+    @Transactional
     public void deleteComment(Long commentId) {
         commentRepository.deleteById(commentId);
     }
