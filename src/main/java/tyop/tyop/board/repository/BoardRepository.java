@@ -13,13 +13,13 @@ import java.time.LocalDate;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
 
-    @Query("select b from Board b join b.member m where b.createdDate = :nowDate and b.boardState = NORMAL")
+    @Query("select b from Board b join b.member where b.createdDate = :nowDate and b.boardState = NORMAL")
     Page<Board> findHotBoards(@Param("nowDate") LocalDate nowDate, Pageable pageable);
 
-    @Query("select b from Board b join b.member m where b.boardState = NORMAL and b.title like %:title%")
+    @Query("select b from Board b join b.member where b.boardState = NORMAL and b.title like %:title%")
     Page<Board> searchBoardsByTitle(@Param("title") String keyword, Pageable pageable);
 
-    @Query("select b from Board b join b.member m where b.boardState = NORMAL and b.tag like %:tag%")
+    @Query("select b from Board b join b.member where b.boardState = NORMAL and b.tag like %:tag%")
     Page<Board> searchBoardsByTag(@Param("tag") String keyword, Pageable pageable);
 
     @Query("select b from Board b join b.member m where m.email = :email")
@@ -28,13 +28,13 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     @Query("select b from Board b join b.member m where b.boardState = :boardState and m.email = :email")
     Page<Board> findInquiryBoards(@Param("boardState") BoardState boardState, @Param("email") String email, Pageable pageable);
 
-    @Query("select b from Board b join b.member m where b.boardState = :boardState")
+    @Query("select b from Board b join b.member where b.boardState = :boardState")
     Page<Board> findAllInquiryBoards(@Param("boardState") BoardState boardState, Pageable pageable);
 
-    @Query("select b from Board b join fetch b.member m where b.id = :id")
+    @Query("select b from Board b join fetch b.member where b.id = :id")
     Board findOneBoard(@Param("id") Long id);
 
-    @Query("select b from Board b join fetch b.member m where b.id = :id")
+    @Query("select b from Board b join fetch b.member where b.id = :id")
     Board findOneInquiryBoard(@Param("id") Long id);
 
     @Modifying

@@ -20,6 +20,7 @@ import tyop.tyop.board.model.Board;
 import tyop.tyop.board.model.BoardState;
 import tyop.tyop.board.service.BoardService;
 import tyop.tyop.board.util.BoardMapper;
+import tyop.tyop.comment.service.CommentService;
 import tyop.tyop.filteringBot.FilteringBot;
 import tyop.tyop.member.model.Member;
 import tyop.tyop.member.model.Role;
@@ -39,6 +40,7 @@ public class BoardController {
     private final BoardService boardService;
     private final MemberService memberService;
     private final UploadFileService uploadFileService;
+    private final CommentService commentService;
     private static final int LIMIT_UPLOAD_SIZE = 4;
 
     @GetMapping("/board/hot")
@@ -88,7 +90,8 @@ public class BoardController {
             }) Pageable pageable,
             Principal principal
     ) {
-        Page<BoardResponse> boards = boardService.getBoardsByEmail(principal.getName(), pageable);
+        String email = principal.getName();
+        Page<BoardResponse> boards = boardService.getBoardsByEmail(email, pageable);
 
         return ResponseEntity.ok(boards);
     }
@@ -243,7 +246,7 @@ public class BoardController {
         log.info("게시글 수정 완료");
 
         if (!CommonUtils.isEmptyMultipartFile(uploadFile)) {
-            uploadFileService.deleteFile(id);
+            uploadFileService.deleteFile(id, board);
 
             int cnt = 0;
             for (MultipartFile file : uploadFile) {
@@ -336,7 +339,8 @@ public class BoardController {
             return ResponseEntity.ok("작성자가 아니면 삭제가 불가능합니다.");
         }
 
-        uploadFileService.deleteFile(id);
+        uploadFileService.deleteFile(id, board);
+        commentService.bulkDeleteComment(board);
         boardService.deleteBoard(id);
         log.info("게시글과 파일 모두 삭제 완료");
 

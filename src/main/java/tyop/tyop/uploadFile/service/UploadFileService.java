@@ -46,7 +46,7 @@ public class UploadFileService {
     }
 
     @Transactional
-    public void deleteFile(Long boardId) {
+    public void deleteFile(Long boardId, Board board) {
         List<UploadFile> files = uploadFileRepository.findFilesByBoardId(boardId);
 
         for (UploadFile uploadFile : files) {
@@ -55,7 +55,7 @@ public class UploadFileService {
             if (file.delete()) {
                 log.info("file : " + saveFileName + " 삭제 완료");
             }
-            uploadFileRepository.deleteById(uploadFile.getId());
         }
+        uploadFileRepository.deleteBulkFileByBoardId(board);
     }
 }
