@@ -87,6 +87,14 @@
 ```
 [GET] /file/{saveFileName} : 로컬 파일 보기
 ```
+### Comment
+```
+[GET] /comment/{boardId}
+[POST] /comment/post/{boardId}
+[POST] /comment/edit/{commentId}
+[POST] /comment/report/{commentId}
+[POST] /comment/delete/{commentId}
+```
 ## Json 바디 설계
 ### Member
 ```
@@ -118,11 +126,21 @@ new
   "tag": "test_tag"
 }
 ```
+### Comment
+```
+[post]
+{
+  "content": "test_content"
+}
+[edit]
+{
+  "content": "updated_content"
+}
+```
 
 # 4. 데이터베이스 설계
-## 제약 조건
-## 생성 및 변경 쿼리
 ## ER Diagram
+![스크린샷(155)](https://user-images.githubusercontent.com/88976237/210204218-d3ec963e-5d12-4ec0-a0ed-cc73a2fd4de3.png)
 ## 테스트용 더미데이터
 ```
 [게시글 테스트를 위한 더미데이터]
@@ -163,6 +181,14 @@ insert into board(board_state, content, created_date, hit, member_id, tag, title
 * Http Method는 get이다.
 ## 회원가입
 * 회원가입을 하면 바로 로그인이 자동으로 이루어진다.
+## 벌크 연산
+* 한번에 여러건의 데이터를 수정/삭제하는 연산을 말한다.
+* 프로젝트에서는 게시글이 삭제될때 이와 연관된 댓글과 파일을 삭제하는 용도로 사용했다.
+* 벌크연산은 영속성 컨텍스트를 무시하고 db에 직접 쿼리를 날리기에 이에 유의해야한다.
+* 예를 들어 벌크 연산 후에 값을 조회하면 db값과 조회 후 나오는 값이 다를 수 있다.
+* 즉 데이터가 안맞는 문제가 발생할 수 있다.
+* @Modufying(clearAutomatically = true)를 사용하면 영속성 컨텍스트를 비워준다.
+* 비우고 나서 조회를 하면 정상적으로 작동한다.
 
 # 7. 나의 고민
 ## 양방향 관계 및 OneToMany
@@ -202,14 +228,3 @@ insert into board(board_state, content, created_date, hit, member_id, tag, title
 * cascade를 대체하는 방법은 간단하다.
 * 삭제할 one 엔티티를 삭제하고 해당 id를 fk로 가지고 있는 데이터를 모두 찾아 삭제하면된다.
 * 댓글과 파일 모두 게시글이 삭제되면 같이 삭제된다.
-
-```
-SET foreign_key_checks = 0;
-drop table 테이블명;
-SET foreign_key_checks = 1;
-으로 외래키 제약조건 해제하고 테이블 삭제 가능
-```
-
-
-댓글 신고 -> state가 신고로 변경
-북마크
