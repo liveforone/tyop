@@ -1,6 +1,7 @@
 package tyop.tyop.comment.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -8,7 +9,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import tyop.tyop.board.model.Board;
 import tyop.tyop.board.service.BoardService;
@@ -49,14 +52,21 @@ public class CommentController {
     @PostMapping("/comment/post/{boardId}")
     public ResponseEntity<?> commentPost(
             @PathVariable("boardId") Long boardId,
-            @RequestBody CommentRequest commentRequest,
+            @RequestBody @Valid CommentRequest commentRequest,
             Principal principal,
+            BindingResult bindingResult,
             HttpServletRequest request
     ) {
         Board board = boardService.getBoardEntity(boardId);
 
         if (CommonUtils.isNull(board)) {
             return ResponseEntity.ok("존재하지 않는 게시글 입니다.");
+        }
+
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("댓글은 100자의 길이를 초과해선 안됩니다.");
         }
 
         String content = commentRequest.getContent();
@@ -77,14 +87,21 @@ public class CommentController {
     @PostMapping("/comment/edit/{commentId}")
     public ResponseEntity<?> commentEdit(
             @PathVariable("commentId") Long commentId,
-            @RequestBody CommentEditRequest commentEditRequest,
+            @RequestBody @Valid CommentEditRequest commentEditRequest,
             Principal principal,
+            BindingResult bindingResult,
             HttpServletRequest request
     ) {
         Comment comment = commentService.getCommentEntity(commentId);
 
         if (CommonUtils.isNull(comment)) {
             return ResponseEntity.ok("존재하지 않는 댓글 입니다.");
+        }
+
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("댓글은 100자의 길이를 초과해선 안됩니다.");
         }
 
         String content = commentEditRequest.getContent();
