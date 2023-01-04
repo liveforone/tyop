@@ -19,6 +19,7 @@ import tyop.tyop.board.dto.BoardResponse;
 import tyop.tyop.board.model.Board;
 import tyop.tyop.board.model.BoardState;
 import tyop.tyop.board.service.BoardService;
+import tyop.tyop.board.util.BoardConstants;
 import tyop.tyop.board.util.BoardMapper;
 import tyop.tyop.comment.service.CommentService;
 import tyop.tyop.filteringBot.FilteringBot;
@@ -41,7 +42,6 @@ public class BoardController {
     private final MemberService memberService;
     private final UploadFileService uploadFileService;
     private final CommentService commentService;
-    private static final int LIMIT_UPLOAD_SIZE = 4;
 
     @GetMapping("/board/hot")
     public ResponseEntity<?> hotBoards(
@@ -131,7 +131,7 @@ public class BoardController {
             Board board = boardService.getBoardEntity(boardId);
             int cnt = 0;
             for (MultipartFile file : uploadFile) {
-                if (cnt == LIMIT_UPLOAD_SIZE) {
+                if (cnt == BoardConstants.LIMIT_UPLOAD_SIZE.getValue()) {
                     break;
                 }
                 uploadFileService.saveFile(file, board);
@@ -250,7 +250,7 @@ public class BoardController {
 
             int cnt = 0;
             for (MultipartFile file : uploadFile) {
-                if (file.isEmpty() || cnt == LIMIT_UPLOAD_SIZE) {
+                if (file.isEmpty() || cnt == BoardConstants.LIMIT_UPLOAD_SIZE.getValue()) {
                     break;
                 }
                 uploadFileService.saveFile(file, board);
